@@ -2,7 +2,7 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw354eehe0zKpQIvgTRsCLEVnvnT7_U5dNnwVjw4icxw9S9I6U8NEKzTUGRlPoaw18/exec";
 
 // รหัสผ่านแอดมินแบบง่าย (ถ้าต้องการปลอดภัยจริงต้องตรวจใน Apps Script)
-const ADMIN_PASSWORD = "admin2026";
+const ADMIN_PASSWORD = "Bsr@2026";
 
 const loginBox = document.getElementById("loginBox");
 const adminPanel = document.getElementById("adminPanel");
@@ -264,4 +264,5 @@ window.addEventListener("DOMContentLoaded", async () => {
     showLogin();
   }
 });
+
 
