@@ -1,3 +1,5 @@
+body{ outline: 15px solid red !important; }
+
 :root{
   /* =====================================
      THEME: Background Image Watercolor
@@ -282,3 +284,4 @@ body::before{
   .container{ padding: 18px; }
   .form-grid{ grid-template-columns: 1fr; }
 }
+
