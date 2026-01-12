@@ -1,5 +1,5 @@
 // ✅ วาง URL /exec ของ Apps Script Web App ของคุณ
-const WEB_APP_URL ="https://script.google.com/macros/s/AKfycbw354eehe0zKpQIvgTRsCLEVnvnT7_U5dNnwVjw4icxw9S9I6U8NEKzTUGRlPoaw18/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw354eehe0zKpQIvgTRsCLEVnvnT7_U5dNnwVjw4icxw9S9I6U8NEKzTUGRlPoaw18/exec";
 
 const layer = document.getElementById("buttonsLayer");
 const chooseText = document.getElementById("chooseText");
@@ -11,6 +11,12 @@ const tableNoHidden = document.getElementById("tableNo");
 // ✅ แนวนอน A-J / แนวตั้ง 1-13
 const COLS = "ABCDEFGHIJ".split("");
 const ROWS = Array.from({ length: 13 }, (_, i) => i + 1);
+
+// ✅ ปรับตำแหน่งให้ตรงรูป
+const START_X = 22;
+const START_Y = 24;
+const GAP_X = 6.0;
+const GAP_Y = 6.0;
 
 function key(zone, tableNo) {
   return `${zone}-${tableNo}`;
@@ -29,9 +35,7 @@ async function loadBookedAll() {
     const data = await res.json();
 
     const bookedSet = new Set();
-    (data.booked || []).forEach((item) =>
-      bookedSet.add(key(item.zone, item.tableNo))
-    );
+    (data.booked || []).forEach(item => bookedSet.add(key(item.zone, item.tableNo)));
     return bookedSet;
   } catch (err) {
     console.error("loadBookedAll error:", err);
@@ -39,26 +43,11 @@ async function loadBookedAll() {
   }
 }
 
-/**
- * ✅ วางปุ่มแบบ Responsive (แก้ปัญหามือถือปุ่มซ้อน)
- * - ปรับตำแหน่งจากพื้นที่ Grid บนรูป (เป็น %)
- * - ถ้าตำแหน่งไม่เป๊ะ ให้จูน GRID_* ได้
- */
 function renderButtons(bookedSet) {
   layer.innerHTML = "";
   zoneHidden.value = "";
   tableNoHidden.value = "";
   chooseText.textContent = "ยังไม่เลือกโต๊ะ";
-
-  // ✅ กำหนดกรอบพื้นที่สำหรับวางปุ่มบนรูป (หน่วย %)
-  // 📌 สามารถจูน 4 ตัวนี้ให้ตรงรูปมากขึ้นได้
-  const GRID_LEFT = 12;  // ระยะซ้าย
-  const GRID_TOP = 14;   // ระยะบน
-  const GRID_W = 76;     // ความกว้างพื้นที่วางปุ่ม
-  const GRID_H = 74;     // ความสูงพื้นที่วางปุ่ม
-
-  const gapX = GRID_W / (COLS.length - 1);
-  const gapY = GRID_H / (ROWS.length - 1);
 
   ROWS.forEach((row, rIndex) => {
     COLS.forEach((col, cIndex) => {
@@ -69,9 +58,8 @@ function renderButtons(bookedSet) {
       btn.className = "table-btn " + (isBooked ? "booked" : "free");
       btn.textContent = `${col}${row}`;
 
-      // ✅ ตำแหน่งแบบ responsive
-      btn.style.left = GRID_LEFT + cIndex * gapX + "%";
-      btn.style.top = GRID_TOP + rIndex * gapY + "%";
+      btn.style.left = (START_X + cIndex * GAP_X) + "%";
+      btn.style.top = (START_Y + rIndex * GAP_Y) + "%";
 
       if (isBooked) btn.disabled = true;
 
@@ -92,34 +80,14 @@ function renderButtons(bookedSet) {
   });
 }
 
-let lastBookedSet = new Set();
-
 async function init() {
   statusEl.textContent = "⏳ กำลังโหลดผังโต๊ะ...";
-  lastBookedSet = await loadBookedAll();
-
-  const img = document.querySelector(".plan-img");
-
-  const doRender = () => {
-    renderButtons(lastBookedSet);
-    statusEl.textContent = "✅ พร้อมจองโต๊ะ";
-  };
-
-  // ✅ รอรูปโหลดก่อนค่อยวางปุ่ม (สำคัญมากสำหรับมือถือ)
-  if (img && !img.complete) {
-    img.onload = doRender;
-  } else {
-    doRender();
-  }
+  const bookedSet = await loadBookedAll();
+  renderButtons(bookedSet);
+  statusEl.textContent = "✅ พร้อมจองโต๊ะ";
 }
 
-// ✅ โหลดหลังรูป/ไฟล์ทั้งหมดพร้อมแล้ว
-window.addEventListener("load", init);
-
-// ✅ หมุนจอ/เปลี่ยนขนาด ให้จัดวางใหม่ ไม่ให้ปุ่มซ้อน
-window.addEventListener("resize", () => {
-  renderButtons(lastBookedSet);
-});
+document.addEventListener("DOMContentLoaded", init);
 
 document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -157,6 +125,7 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
       body: fd,
     });
 
+    // ✅ ถึงอ่าน JSON ไม่ได้เพราะ CORS ก็ยังให้ถือว่าบันทึกแล้ว แล้วค่อยโหลดใหม่
     if (!res.ok) {
       statusEl.textContent = "❌ บันทึกไม่สำเร็จ (HTTP " + res.status + ")";
       return;
@@ -164,8 +133,8 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
 
     statusEl.textContent = "✅ จองสำเร็จ!";
     document.getElementById("bookingForm").reset();
-
     await init();
+
   } catch (err) {
     console.error(err);
     statusEl.textContent = "❌ Error: ไม่สามารถเชื่อมต่อได้";
