@@ -1,6 +1,8 @@
 :root{
-  --bg1:#fef6ff;
-  --bg2:#e8f7ff;
+  /* =====================================
+     THEME: Background Image Watercolor
+     ใช้รูป bg.jpg เป็นพื้นหลัง
+  ====================================== */
 
   --blue:#7ad1ff;
   --mint:#82f7d0;
@@ -16,16 +18,21 @@ html, body{
   height: 100%;
 }
 
-/* ===== body background luxury ===== */
+/* ===== body background ใช้รูปภาพ ===== */
 body{
   margin:0;
   font-family:"Kanit",sans-serif;
 
-  /* พื้นหลังหลัก (เดิม) */
-  background: linear-gradient(135deg, var(--bg1), var(--bg2));
-  min-height: 100vh;
+  /* ✅ ใช้รูปพื้นหลัง */
+  background-image: url("images/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 
+  min-height: 100vh;
   padding: 26px;
+
   display:flex;
   justify-content:center;
   align-items:flex-start;
@@ -34,7 +41,7 @@ body{
   overflow-x: hidden;
 }
 
-/* เพิ่มแสง/ฟองเบา ๆ แบบหรู */
+/* ✅ Overlay ให้ภาพนุ่ม+อ่านง่าย */
 body::before{
   content:"";
   position: fixed;
@@ -42,11 +49,8 @@ body::before{
   z-index: -1;
   pointer-events: none;
 
-  background:
-    radial-gradient(circle at 12% 18%, rgba(255, 182, 193, 0.33), transparent 42%),
-    radial-gradient(circle at 86% 12%, rgba(173, 216, 230, 0.32), transparent 45%),
-    radial-gradient(circle at 22% 92%, rgba(144, 238, 144, 0.22), transparent 48%),
-    radial-gradient(circle at 92% 86%, rgba(255, 236, 179, 0.28), transparent 50%);
+  /* ปรับความเข้มได้: 0.45-0.70 */
+  background: rgba(255,255,255,0.55);
 }
 
 /* ===== container glass ===== */
@@ -54,16 +58,18 @@ body::before{
   width: 100%;
   max-width: 1100px;
 
-  /* เปลี่ยนจากขาวทึบ เป็น glass */
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(14px);
+  /* ✅ glass แบบภาพ */
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(18px);
 
   border-radius: 22px;
   padding: 26px;
-  box-shadow: 0 14px 35px rgba(0,0,0,0.08);
+
+  box-shadow: 0 18px 55px rgba(0,0,0,0.12);
   border: 1px solid rgba(255,255,255,0.55);
 }
 
+/* header */
 .header h1{
   margin:0 0 6px;
   font-size: 32px;
@@ -82,6 +88,8 @@ body::before{
   border-radius: 20px;
   padding: 18px;
   margin-bottom: 18px;
+
+  /* การ์ดนุ่มๆ */
   background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(249,251,255,0.92));
 }
 
@@ -141,19 +149,26 @@ body::before{
   font-size: 12px;
   cursor:pointer;
   box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  transition: 0.15s ease;
 }
 
 .table-btn.free{ background:var(--free); color:#064e1e; }
 .table-btn.booked{ background:var(--booked); color:#fff; cursor:not-allowed; }
 .table-btn.selected{ background:var(--selected); color:#fff; }
 
+.table-btn:hover{
+  transform: translate(-50%, -52%);
+}
+
+.table-btn:active{
+  transform: translate(-50%, -50%);
+}
+
 .selected-info{
   margin-top: 12px;
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px dashed rgba(0,0,0,0.12);
-
-  /* ปรับให้เข้ากับพื้นหลังใหม่ */
   background: rgba(122,209,255,0.16);
   font-weight: 900;
 }
@@ -165,7 +180,6 @@ body::before{
   border-radius: 22px;
   border: 1px solid rgba(0,0,0,0.07);
 
-  /* ทำให้กลืนกับธีม glass */
   background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(246,251,255,0.92));
   box-shadow: 0 16px 30px rgba(0,0,0,0.07);
 }
