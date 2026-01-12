@@ -77,13 +77,18 @@ body{
 .dot.selected{ background:var(--selected); }
 .dot.booked{ background:var(--booked); }
 
+/* ✅ ผังโต๊ะ: ปรับให้ Responsive และกันปุ่มล้น */
 .plan-wrapper{
   position: relative;
   width: 100%;
+  overflow: hidden;     /* ✅ กันปุ่มล้น */
+  margin: 0 auto;       /* ✅ จัดกึ่งกลาง */
+  max-width: 520px;     /* ✅ กันผังใหญ่เกินบนจอเล็ก */
 }
 
 .plan-img{
   width:100%;
+  height: auto;         /* ✅ ป้องกันเพี้ยน */
   display:block;
   border-radius: 18px;
   box-shadow: 0 16px 30px rgba(0,0,0,0.16);
@@ -92,10 +97,13 @@ body{
   z-index:1;
 }
 
+/* ✅ ชั้นปุ่ม ต้องทับรูป 100% */
 .buttons-layer{
   position:absolute;
   inset:0;
   z-index:5;
+  width: 100%;
+  height: 100%;
 }
 
 .table-btn{
@@ -216,35 +224,22 @@ body{
   font-weight: 900;
 }
 
+/* ✅ มือถือ */
 @media (max-width: 768px){
   body{ padding: 14px; }
   .container{ padding: 18px; }
   .form-grid{ grid-template-columns: 1fr; }
 
-    .plan-wrapper {
-    width: 100%;
+  /* ✅ จำกัดขนาดผังให้สวยบนมือถือ */
+  .plan-wrapper{
     max-width: 360px;
-    margin: 0 auto;
   }
 
-  .plan-img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .buttons-layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .table-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 12px !important;
+  /* ✅ ปุ่มโต๊ะ Responsive: ย่อ/ขยายตามจอ */
+  .table-btn{
+    width: clamp(26px, 8vw, 34px) !important;
+    height: clamp(26px, 8vw, 34px) !important;
+    font-size: clamp(9px, 2.8vw, 12px) !important;
     border-radius: 10px !important;
   }
 }
-
