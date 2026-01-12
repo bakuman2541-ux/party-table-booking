@@ -1,6 +1,0 @@
-table-booking/
-│  index.html
-│  style.css
-│  script.js
-└─ images/
-   └─ plan.png
