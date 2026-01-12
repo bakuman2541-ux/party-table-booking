@@ -23,8 +23,8 @@ body{
   margin:0;
   font-family:"Kanit",sans-serif;
 
-  /* ✅ ใช้รูปพื้นหลัง */
-  background-image: url("images/bg.jpg");
+  /* ✅ ใช้รูปพื้นหลัง (เติม ?v=2 กัน cache บน GitHub Pages) */
+  background-image: url("images/bg.jpg?v=2");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
