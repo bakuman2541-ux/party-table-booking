@@ -1,6 +1,5 @@
 // ✅ ใช้ URL เดียวกับหน้าจอง (ต้องเป็นของคุณ)
-const WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbw354eehe0zKpQIvgTRsCLEVnvnT7_U5dNnwVjw4icxw9S9I6U8NEKzTUGRlPoaw18/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw354eehe0zKpQIvgTRsCLEVnvnT7_U5dNnwVjw4icxw9S9I6U8NEKzTUGRlPoaw18/exec";
 
 // รหัสผ่านแอดมินแบบง่าย (ถ้าต้องการปลอดภัยจริงต้องตรวจใน Apps Script)
 const ADMIN_PASSWORD = "bsr1234";
@@ -66,56 +65,15 @@ editModal.addEventListener("click", (e) => {
   if (e.target === editModal) closeModal();
 });
 
-/* ===========================
-   ✅ สำคัญ: โหลดข้อมูลแอดมิน
-   เปลี่ยนเป็น POST เพื่อให้ตรงกับ Apps Script
-=========================== */
 async function loadBookings() {
   setStatus(adminStatus2, "⏳ กำลังโหลดข้อมูล...");
 
-  try {
-    const fd = new FormData();
-    fd.append("action", "adminList");
-    // กัน cache บางเบราว์เซอร์
-    fd.append("_ts", String(Date.now()));
+  const res = await fetch(`${WEB_APP_URL}?action=adminList`);
+  const data = await res.json();
 
-    const res = await fetch(WEB_APP_URL, {
-      method: "POST",
-      body: fd,
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok || !data) {
-      setStatus(adminStatus2, `❌ โหลดข้อมูลไม่สำเร็จ (HTTP ${res.status})`);
-      tableWrap.innerHTML =
-        `<div style="padding:12px; color:#ef4444; font-weight:900;">
-          ไม่สามารถอ่าน JSON ได้ หรือเซิร์ฟเวอร์ตอบกลับผิดรูปแบบ
-        </div>`;
-      return;
-    }
-
-    if (data.ok === false) {
-      setStatus(adminStatus2, "❌ โหลดข้อมูลไม่สำเร็จ: " + (data.message || "ไม่ทราบสาเหตุ"));
-      tableWrap.innerHTML =
-        `<div style="padding:12px; color:#ef4444; font-weight:900;">
-          ${escapeHtml(data.message || "โหลดข้อมูลไม่สำเร็จ")}
-        </div>`;
-      return;
-    }
-
-    BOOKINGS = Array.isArray(data.bookings) ? data.bookings : [];
-
-    renderTable(BOOKINGS);
-    setStatus(adminStatus2, `✅ โหลดแล้ว ${BOOKINGS.length} รายการ`);
-  } catch (err) {
-    console.error(err);
-    setStatus(adminStatus2, "❌ Error: ไม่สามารถเชื่อมต่อได้");
-    tableWrap.innerHTML =
-      `<div style="padding:12px; color:#ef4444; font-weight:900;">
-        Error: ${escapeHtml(err?.message || String(err))}
-      </div>`;
-  }
+  BOOKINGS = data.bookings || [];
+  renderTable(BOOKINGS);
+  setStatus(adminStatus2, `✅ โหลดแล้ว ${BOOKINGS.length} รายการ`);
 }
 
 function renderTable(items) {
@@ -138,9 +96,7 @@ function renderTable(items) {
         </tr>
       </thead>
       <tbody>
-        ${items
-          .map(
-            (row) => `
+        ${items.map(row => `
           <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
             <td style="padding:10px; font-weight:900;">${escapeHtml(row.zone)}${escapeHtml(row.tableNo)}</td>
             <td style="padding:10px;">${escapeHtml(row.bookerName)}</td>
@@ -154,9 +110,7 @@ function renderTable(items) {
               <button class="btnSmall" data-act="unlock" data-zone="${escapeHtml(row.zone)}" data-table="${escapeHtml(row.tableNo)}">🔓 ปลดโต๊ะ</button>
             </td>
           </tr>
-        `
-          )
-          .join("")}
+        `).join("")}
       </tbody>
     </table>
   `;
@@ -168,9 +122,8 @@ function filterData() {
   const q = (searchBox.value || "").trim().toLowerCase();
   if (!q) return renderTable(BOOKINGS);
 
-  const filtered = BOOKINGS.filter((r) => {
-    const text =
-      `${r.zone}${r.tableNo} ${r.bookerName} ${r.studentName} ${r.classLevel} ${r.homeroomTeacher} ${r.phone}`.toLowerCase();
+  const filtered = BOOKINGS.filter(r => {
+    const text = `${r.zone}${r.tableNo} ${r.bookerName} ${r.studentName} ${r.classLevel} ${r.homeroomTeacher} ${r.phone}`.toLowerCase();
     return text.includes(q);
   });
 
@@ -181,7 +134,6 @@ async function adminDelete(id) {
   if (!confirm("ต้องการลบรายการนี้ใช่ไหม?")) return;
 
   setStatus(adminStatus2, "⏳ กำลังลบ...");
-
   const fd = new FormData();
   fd.append("action", "adminDelete");
   fd.append("id", id);
@@ -202,7 +154,6 @@ async function adminUnlock(zone, tableNo) {
   if (!confirm(`ต้องการปลดโต๊ะ ${zone}${tableNo} ใช่ไหม?`)) return;
 
   setStatus(adminStatus2, "⏳ กำลังปลดโต๊ะ...");
-
   const fd = new FormData();
   fd.append("action", "adminUnlock");
   fd.append("zone", zone);
@@ -221,7 +172,7 @@ async function adminUnlock(zone, tableNo) {
 }
 
 async function adminEdit(id) {
-  const row = BOOKINGS.find((x) => String(x.id) === String(id));
+  const row = BOOKINGS.find(x => String(x.id) === String(id));
   if (!row) return;
 
   editId.value = row.id;
@@ -265,8 +216,7 @@ document.getElementById("btnSaveEdit").addEventListener("click", async () => {
   const data = await res.json().catch(() => null);
 
   if (!res.ok || !data?.ok) {
-    modalStatus.textContent =
-      "❌ บันทึกไม่สำเร็จ: " + (data?.message || `HTTP ${res.status}`);
+    modalStatus.textContent = "❌ บันทึกไม่สำเร็จ: " + (data?.message || `HTTP ${res.status}`);
     return;
   }
 
@@ -315,5 +265,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-/* Print */
-document.getElementById("btnPrint").addEventListener("click", () => window.print());
+// ✅ ปุ่มปริ้น
+document.getElementById("btnPrint").addEventListener("click", () => {
+  if (!isLoggedIn()) return;
+  window.print();
+});
+
