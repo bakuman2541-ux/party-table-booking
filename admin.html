@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - จัดการการจองโต๊ะ</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Admin - จัดการการจองโต๊ะ</h1>
+      <p>ดูรายการจองทั้งหมด แก้ไข/ลบ/ปลดล็อกโต๊ะ</p>
+
+      <div class="admin-toolbar">
+        <a class="btn-submit btn-tool" href="index.html">
+          ⬅️ กลับหน้าจองโต๊ะ
+        </a>
+
+        <button id="btnReload" class="btn-submit btn-tool" type="button">
+          🔄 โหลดข้อมูลใหม่
+        </button>
+
+        <!-- ✅ ปุ่มปริ้น -->
+        <button id="btnPrint" class="btn-submit btn-tool" type="button">
+          🖨️ ปริ้นรายการ
+        </button>
+      </div>
+    </div>
+
+    <!-- Login -->
+    <div class="booking-form" id="loginBox" style="margin-top:14px;">
+      <div class="form-head">
+        <h2>รหัสผ่านแอดมิน</h2>
+        <p>กรอกรหัสเพื่อเข้าสู่หน้าจัดการ</p>
+      </div>
+
+      <div class="input-group full">
+        <label>รหัสผ่าน</label>
+        <div class="input-wrap">
+          <span class="icon">🔑</span>
+          <input id="adminPass" type="password" placeholder="รหัสผ่านแอดมิน">
+        </div>
+      </div>
+
+      <button id="btnLogin" class="btn-submit" type="button">✅ เข้าสู่ระบบ</button>
+      <p id="adminStatus" class="form-status"></p>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="booking-form" id="adminPanel" style="display:none; margin-top:14px;">
+      <div class="form-head">
+        <h2>📋 รายการจองทั้งหมด</h2>
+        <p>คลิก “แก้ไข/ลบ/ปลดโต๊ะ” ได้ทันที</p>
+      </div>
+
+      <div class="input-group full no-print">
+        <label>ค้นหา (ชื่อ/เบอร์/ชั้น/โต๊ะ)</label>
+        <div class="input-wrap">
+          <span class="icon">🔎</span>
+          <input id="searchBox" type="text" placeholder="เช่น 089 / ป.6/1 / A3 / ครู...">
+        </div>
+      </div>
+
+      <div id="tableWrap" style="overflow:auto; margin-top:14px;"></div>
+
+      <p id="adminStatus2" class="form-status no-print"></p>
+    </div>
+
+  </div>
+
+  <!-- ✅ MODAL EDIT -->
+  <div id="editModal" class="modal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>✏️ แก้ไขรายการจอง</h3>
+        <button id="btnCloseModal" class="modal-x" type="button">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+
+        <div class="modal-grid">
+          <div class="input-group">
+            <label>โซน</label>
+            <div class="input-wrap">
+              <span class="icon">🅿️</span>
+              <input id="editZone" type="text" placeholder="เช่น A">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>เลขโต๊ะ</label>
+            <div class="input-wrap">
+              <span class="icon">🔢</span>
+              <input id="editTableNo" type="text" placeholder="เช่น 1">
+            </div>
+          </div>
+
+          <div class="input-group full">
+            <label>ชื่อผู้จอง</label>
+            <div class="input-wrap">
+              <span class="icon">👤</span>
+              <input id="editBookerName" type="text">
+            </div>
+          </div>
+
+          <div class="input-group full">
+            <label>ชื่อนักเรียน</label>
+            <div class="input-wrap">
+              <span class="icon">🎓</span>
+              <input id="editStudentName" type="text">
+            </div>
+          </div>
+
+          <div class="input-group full">
+            <label>ชื่อครู</label>
+            <div class="input-wrap">
+              <span class="icon">🧑‍🏫</span>
+              <input id="editTeacher" type="text">
+            </div>
+          </div>
+
+          <div class="input-group full">
+            <label>เบอร์โทร</label>
+            <div class="input-wrap">
+              <span class="icon">📞</span>
+              <input id="editPhone" type="tel">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnSaveEdit" class="btn-submit" style="width:auto; padding:10px 14px;" type="button">
+            💾 บันทึกการแก้ไข
+          </button>
+        </div>
+
+        <p id="modalStatus" class="form-status"></p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .admin-toolbar{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn-tool{
+      width:auto;
+      padding:10px 14px;
+      text-decoration:none;
+      display:inline-block;
+    }
+
+    /* ปุ่มในตาราง */
+    .btnSmall{
+      border:none;
+      border-radius:12px;
+      padding:8px 10px;
+      margin:2px;
+      cursor:pointer;
+      font-family:"Kanit", sans-serif;
+      font-weight:900;
+      background: rgba(122,209,255,0.25);
+    }
+    .btnSmall:hover{ transform: translateY(-1px); }
+
+    /* Modal */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.45);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .modal-card{
+      width: min(720px, 100%);
+      background: rgba(255,255,255,0.95);
+      border-radius: 22px;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .modal-head{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .modal-head h3{ margin:0; font-size: 18px; }
+    .modal-x{
+      border:none;
+      background: rgba(0,0,0,0.06);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+    .modal-body{ padding: 16px 18px; }
+    .modal-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .modal-grid .full{ grid-column: 1 / -1; }
+    .modal-actions{
+      margin-top: 14px;
+      display:flex;
+      justify-content:flex-end;
+    }
+    @media (max-width: 560px){
+      .modal-grid{ grid-template-columns: 1fr; }
+    }
+
+    /* ==========================
+       ✅ Print Style
+       ปริ้นเฉพาะตาราง (ไม่เอาปุ่ม/ช่องค้นหา/จัดการ)
+    ========================== */
+    @media print{
+      /* ซ่อนส่วนที่ไม่อยากให้ปริ้น */
+      .admin-toolbar,
+      #loginBox,
+      .modal,
+      .no-print{
+        display:none !important;
+      }
+
+      /* ซ่อนคอลัมน์ปุ่มจัดการ */
+      table th:last-child,
+      table td:last-child{
+        display:none !important;
+      }
+
+      /* ตัดเงา/พื้นหลัง */
+      body{
+        background:#fff !important;
+      }
+      .container{
+        width:100% !important;
+        max-width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+      }
+      .booking-form{
+        box-shadow:none !important;
+        border:none !important;
+        background:#fff !important;
+      }
+    }
+  </style>
+
+  <script src="admin.js"></script>
+</body>
+</html>
