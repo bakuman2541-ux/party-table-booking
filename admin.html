@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - จัดการการจองโต๊ะ</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container adminPage">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-top">
+        <div class="header-title">
+          <h1>🔐 Admin - จัดการการจองโต๊ะ</h1>
+          <p>ดูรายการจองทั้งหมด ค้นหา แก้ไข ลบ และปลดล็อกโต๊ะ</p>
+        </div>
+
+        <div class="header-btns">
+          <a class="btn-top btn-check" href="index.html">
+            <span class="btn-top__icon">↩️</span>
+            <span class="btn-top__text">
+              กลับหน้าจองโต๊ะ
+              <span class="btn-top__sub">ไปหน้าเลือกโต๊ะ</span>
+            </span>
+          </a>
+
+          <button id="btnReload" class="btn-top btn-admin" type="button">
+            <span class="btn-top__icon">🔄</span>
+            <span class="btn-top__text">
+              โหลดข้อมูลใหม่
+              <span class="btn-top__sub">รีเฟรชรายการ</span>
+            </span>
+          </button>
+
+          <button id="btnPrint" class="btn-top btn-admin" type="button">
+            <span class="btn-top__icon">🖨️</span>
+            <span class="btn-top__text">
+              ปริ้นรายการ
+              <span class="btn-top__sub">พิมพ์รายงาน</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- LOGIN -->
+    <section id="loginBox" class="plan">
+      <div class="plan-top">
+        <div>
+          <h2 style="margin:0;font-size:22px;font-weight:1000;">รหัสผ่านแอดมิน</h2>
+          <p style="margin:6px 0 0;color:#6b7280;font-size:14px;font-weight:800;">กรอกรหัสเพื่อเข้าสู่หน้าจัดการ</p>
+        </div>
+      </div>
+
+      <div class="input-group full">
+        <label for="adminPass">รหัสผ่าน</label>
+        <div class="input-wrap">
+          <div class="icon">🔑</div>
+          <input id="adminPass" type="password" placeholder="กรอกรหัสผ่านแอดมิน">
+        </div>
+      </div>
+
+      <button id="btnLogin" class="btn-submit" type="button">✅ เข้าสู่ระบบ</button>
+      <div id="adminStatus" class="form-status"></div>
+    </section>
+
+    <!-- ADMIN PANEL -->
+    <section id="adminPanel" class="plan hidden" style="display:none;">
+      <div class="plan-top adminTopRow">
+        <div>
+          <h2 style="margin:0;font-size:22px;font-weight:1000;">📋 รายการจองทั้งหมด</h2>
+          <p style="margin:6px 0 0;color:#6b7280;font-size:14px;font-weight:800;">สไตล์แบบหน้าค้นหา (Card)</p>
+        </div>
+
+        <div class="table-search">
+          <div class="table-search__wrap">
+            <div class="table-search__icon">🔎</div>
+            <input id="searchBox" type="text" placeholder="ค้นหา เช่น 089 / ป.1/1 / A3 / ครู...">
+          </div>
+        </div>
+      </div>
+
+      <div class="count-box">
+        <div class="count-item">
+          <div class="count-num" id="countAll">0</div>
+          <div class="count-label">รายการทั้งหมด</div>
+        </div>
+        <div class="count-item">
+          <div class="count-num" id="countShown">0</div>
+          <div class="count-label">กำลังแสดง</div>
+        </div>
+      </div>
+
+      <!-- ✅ เปลี่ยนจาก table เป็น card list -->
+      <div id="tableWrap" class="adminCards"></div>
+
+      <div id="adminStatus2" class="form-status"></div>
+    </section>
+
+    <!-- MODAL -->
+    <div id="editModal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-head">
+          <div class="modal-title">✏️ แก้ไขข้อมูล</div>
+          <button id="btnCloseModal" class="modal-close" type="button">✖</button>
+        </div>
+
+        <div class="modal-body">
+          <input id="editId" type="hidden">
+
+          <div class="form-grid">
+            <div class="input-group">
+              <label>โซน</label>
+              <div class="input-wrap">
+                <div class="icon">🅰️</div>
+                <input id="editZone" type="text">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>เลขโต๊ะ</label>
+              <div class="input-wrap">
+                <div class="icon">🔢</div>
+                <input id="editTableNo" type="text">
+              </div>
+            </div>
+
+            <div class="input-group full">
+              <label>ชื่อผู้จอง</label>
+              <div class="input-wrap">
+                <div class="icon">🙋</div>
+                <input id="editBookerName" type="text">
+              </div>
+            </div>
+
+            <div class="input-group full">
+              <label>ชื่อนักเรียน</label>
+              <div class="input-wrap">
+                <div class="icon">👧</div>
+                <input id="editStudentName" type="text">
+              </div>
+            </div>
+
+            <div class="input-group full">
+              <label>ครูประจำชั้น</label>
+              <div class="input-wrap">
+                <div class="icon">👩‍🏫</div>
+                <input id="editTeacher" type="text">
+              </div>
+            </div>
+
+            <div class="input-group full">
+              <label>เบอร์โทร</label>
+              <div class="input-wrap">
+                <div class="icon">📞</div>
+                <input id="editPhone" type="text">
+              </div>
+            </div>
+          </div>
+
+          <div id="modalStatus" class="form-status"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnSaveEdit" class="btn-mini primary" type="button">💾 บันทึก</button>
+          <button id="btnCancelModal" class="btn-mini ghost" type="button">ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
