@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตรวจสอบการจอง</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap"
+    rel="stylesheet"
+  >
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔎 ตรวจสอบการจองของฉัน</h1>
+      <p>ค้นหาจาก “เบอร์โทร” หรือ “ชื่อผู้จอง/นักเรียน” เพื่อดูโต๊ะที่จองไว้</p>
+
+      <div style="margin-top:10px;">
+        <a href="index.html" class="btn-submit" style="display:inline-block;width:auto;padding:10px 14px;text-decoration:none;">
+          ⬅️ กลับไปหน้าเลือกโต๊ะ
+        </a>
+      </div>
+    </div>
+
+    <div class="booking-form" style="margin-top:0;">
+      <div class="form-head">
+        <h2>ค้นหารายการจอง</h2>
+        <p>พิมพ์คำค้นหาแล้วกดค้นหา</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="q">คำค้นหา</label>
+          <div class="input-wrap">
+            <span class="icon">🔍</span>
+            <input id="q" type="text" placeholder="เช่น 089xxxxxxx หรือ นายสมชาย หรือ เด็กชาย..." />
+          </div>
+        </div>
+      </div>
+
+      <button id="btnSearch" class="btn-submit" type="button">🔎 ค้นหา</button>
+      <p id="status" class="form-status"></p>
+    </div>
+
+    <div id="resultBox" style="margin-top:18px;"></div>
+  </div>
+
+  <script src="check.js"></script>
+</body>
+</html>
