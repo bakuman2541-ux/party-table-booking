@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตรวจสอบการจอง</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ✅ Prompt Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="header-top">
+        <div class="header-title">
+          <h1>🔎 ตรวจสอบการจองของฉัน</h1>
+          <p>ค้นหาด้วย “เบอร์โทร” หรือ “ชื่อผู้จอง/นักเรียน” เพื่อดูโต๊ะที่จองไว้</p>
+        </div>
+
+        <div class="header-btns">
+          <a class="btn-top btn-check" href="index.html">
+            <span class="btn-top__icon">↩️</span>
+            <span class="btn-top__text">
+              กลับหน้าหลัก
+              <span class="btn-top__sub">ไปหน้าเลือกโต๊ะ</span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan check-wrap">
+      <div class="plan-top">
+        <div class="legend">
+          <div><span class="dot selected"></span> ผลการค้นหา</div>
+        </div>
+
+        <div class="table-search">
+          <div class="table-search__wrap">
+            <span class="table-search__icon">🔎</span>
+            <input id="q" type="text" placeholder="ค้นหาชื่อหรือเบอร์โทร" />
+          </div>
+          <button id="btnSearch" class="btn-mini primary" type="button">ค้นหา</button>
+        </div>
+      </div>
+
+      <p id="status" class="form-status"></p>
+
+      <!-- ✅ แสดงผล -->
+      <div id="resultBox"></div>
+    </div>
+
+  </div>
+
+  <script src="check.js"></script>
+</body>
+</html>
