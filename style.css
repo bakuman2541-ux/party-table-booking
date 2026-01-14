@@ -5745,4 +5745,75 @@ body::before{
   align-items: center;
   gap: 10px;
 }
+/* ===============================
+   FIX MODAL MOBILE OVERFLOW
+   ทำให้ไม่ล้นจอ + เลื่อนในกล่องได้
+=================================*/
+@media (max-width: 480px){
+
+  /* overlay ให้อยู่กับที่ ไม่ให้หน้าเว็บเลื่อนตอน modal เปิด */
+  .modalOverlay, .overlay, .popupOverlay {
+    position: fixed !important;
+    inset: 0 !important;
+    padding: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  /* กล่อง modal หลัก */
+  .modal, .popup, .dialog, .sheet {
+    width: 100% !important;
+    max-width: 420px !important;
+
+    /* สำคัญมาก: กันสูงเกินหน้าจอ */
+    max-height: calc(100dvh - 24px) !important;
+
+    border-radius: 20px !important;
+    overflow: hidden !important;
+
+    /* ป้องกันตัวหนังสือ/ปุ่มใหญ่เกิน */
+    font-size: 14px !important;
+  }
+
+  /* เนื้อหาภายใน modal ให้เลื่อนในกล่องได้ */
+  .modalContent, .popupContent, .dialogContent, .sheetContent {
+    max-height: calc(100dvh - 110px) !important; /* เผื่อ header/footer */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 14px !important;
+  }
+
+  /* บีบแถวรายการใน modal ให้เตี้ยลง */
+  .confirmRow,
+  .summaryRow,
+  .rowItem,
+  .bookingRow,
+  .listRow {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  /* ปุ่ม/แท็ก/กล่อง A ให้เล็กลง */
+  .pill, .badge, .tag, .chip, .valueBox {
+    padding: 7px 10px !important;
+    font-size: 13px !important;
+    border-radius: 999px !important;
+  }
+
+  /* ปุ่มปิด x เล็กลง */
+  .closeBtn, .btnClose {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 14px !important;
+  }
+}
+/* iOS keyboard safe area */
+@supports (padding: max(0px)) {
+  .modal, .popup, .dialog, .sheet {
+    padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
 
