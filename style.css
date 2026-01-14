@@ -4851,6 +4851,69 @@ body::before{
     grid-template-columns: 1fr !important;
   }
 }
+/* ===============================
+   Mobile Optimize (โทรศัพท์)
+   ลดขนาดตัวอักษร / padding / ปุ่ม
+=================================*/
+@media (max-width: 480px) {
+
+  /* กล่อง popup/modal ให้เล็กลง */
+  .modal, .popup, .dialog, .sheet {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    border-radius: 18px !important;
+  }
+
+  /* ลดช่องไฟของแถวรายการ */
+  .confirmRow,
+  .summaryRow,
+  .rowItem,
+  .bookingRow,
+  .listRow {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  /* ลดตัวหนังสือทั้งหมดใน popup/modal */
+  .modal, .popup, .dialog, .sheet,
+  .modal * , .popup * , .dialog * , .sheet * {
+    font-size: 14px !important;
+  }
+
+  /* หัวข้อให้เล็กลงนิด */
+  .modal h1, .modal h2, .popup h1, .popup h2 {
+    font-size: 16px !important;
+  }
+
+  /* ไอคอนในแถวให้เล็กลง */
+  .confirmRow .left .icon,
+  .summaryRow .left .icon,
+  .rowItem .left .icon {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  /* badge/ค่า เช่น 2,700 บาท / A */
+  .pill, .badge, .tag, .chip {
+    padding: 7px 10px !important;
+    border-radius: 999px !important;
+    font-size: 13px !important;
+  }
+
+  /* ปุ่มกลมด้านขวา (เช่นปุ่ม x) */
+  button, .btn {
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+  }
+
+  /* ถ้าข้อความยาว ให้ตัดบรรทัด */
+  .confirmRow .left .text,
+  .summaryRow .left .text,
+  .rowItem .left .text {
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+}
 /* =========================================================
    ✅ ADMIN LIST - OVERRIDE FINAL (ให้เหมือนไฟล์หลัก 1)
    วางไว้ "ท้ายสุดสุด" ของ style.css
@@ -5682,3 +5745,4 @@ body::before{
   align-items: center;
   gap: 10px;
 }
+
