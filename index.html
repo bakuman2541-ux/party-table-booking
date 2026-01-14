@@ -143,10 +143,30 @@
         </div>
       </div>
 
+      <!-- ✅ เปิดหน้ายืนยัน (Modal) -->
       <button id="btnSubmit" class="btn-submit" type="submit">✅ ยืนยันการจอง</button>
       <p id="status" class="form-status"></p>
     </form>
 
+  </div>
+
+  <!-- ✅ CONFIRM MODAL (แบบเดียวกับหน้าแก้ไข) -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">✅ ยืนยันการจอง</div>
+        <button id="btnCloseConfirm" class="modal-close" type="button">✖</button>
+      </div>
+
+      <div class="modal-body" id="confirmBody">
+        <!-- JS render summary here -->
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnConfirmSave" class="btn-submit" type="button" style="margin:0;">💾 บันทึก</button>
+        <button id="btnConfirmCancel" class="btn-mini ghost" type="button">ยกเลิก</button>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
