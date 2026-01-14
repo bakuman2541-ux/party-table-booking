@@ -10,6 +10,11 @@ function getPrice(zone) {
 function money(n) {
   return Number(n || 0).toLocaleString("th-TH");
 }
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
 
 const layer = document.getElementById("buttonsLayer");
 const chooseText = document.getElementById("chooseText");
@@ -29,6 +34,13 @@ const tableSearchEl = document.getElementById("tableSearch");
 const btnFindTable = document.getElementById("btnFindTable");
 const btnClearFind = document.getElementById("btnClearFind");
 
+// ✅ Confirm Modal DOM
+const confirmModal = document.getElementById("confirmModal");
+const confirmBody = document.getElementById("confirmBody");
+const btnCloseConfirm = document.getElementById("btnCloseConfirm");
+const btnConfirmCancel = document.getElementById("btnConfirmCancel");
+const btnConfirmSave = document.getElementById("btnConfirmSave");
+
 const COLS = "ABCDEFGHIJ".split("");
 const ROWS = Array.from({ length: 13 }, (_, i) => i + 1);
 
@@ -36,6 +48,8 @@ const START_X = 22;
 const START_Y = 24;
 const GAP_X = 6.0;
 const GAP_Y = 6.0;
+
+let PENDING_BOOKING = null;
 
 function key(zone, tableNo) {
   return `${zone}-${tableNo}`;
@@ -177,10 +191,7 @@ function findTable() {
   if (!q) return;
 
   const found = [...document.querySelectorAll(".table-btn")].find(b => b.textContent.trim() === q);
-  if (!found) {
-    alert("ไม่พบโต๊ะนี้");
-    return;
-  }
+  if (!found) return alert("ไม่พบโต๊ะนี้");
 
   found.classList.add("table-found");
   found.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
@@ -192,7 +203,44 @@ btnClearFind?.addEventListener("click", () => {
   clearFoundMark();
 });
 
-// ✅ Submit (ไม่มี confirm แล้ว)
+// =====================
+// ✅ Confirm Modal (แบบหน้าแก้ไข)
+// =====================
+function openConfirmModal(payload) {
+  PENDING_BOOKING = payload;
+
+  const seat = `${esc(payload.zone)}${esc(payload.tableNo)}`;
+  const price = getPrice(payload.zone);
+
+  confirmBody.innerHTML = `
+    <div class="modal-row"><span>🪑 โต๊ะ</span><b>${seat}</b></div>
+    <div class="modal-row"><span>💰 ราคา</span><b>${money(price)} บาท</b></div>
+    <hr class="modal-hr" />
+    <div class="modal-row"><span>👤 ผู้จอง</span><b>${esc(payload.bookerName)}</b></div>
+    <div class="modal-row"><span>🎓 นักเรียน</span><b>${esc(payload.studentName)}</b></div>
+    <div class="modal-row"><span>🏫 ชั้น</span><b>${esc(payload.classLevel)}</b></div>
+    <div class="modal-row"><span>🧑‍🏫 ครู</span><b>${esc(payload.homeroomTeacher)}</b></div>
+    <div class="modal-row"><span>📞 เบอร์โทร</span><b>${esc(payload.phone)}</b></div>
+    <div class="modal-note">* โปรดตรวจสอบข้อมูลก่อนกดบันทึก</div>
+  `;
+
+  confirmModal.classList.remove("hidden");
+}
+
+function closeConfirmModal() {
+  confirmModal.classList.add("hidden");
+  PENDING_BOOKING = null;
+}
+
+btnCloseConfirm?.addEventListener("click", closeConfirmModal);
+btnConfirmCancel?.addEventListener("click", closeConfirmModal);
+confirmModal?.addEventListener("click", (e) => {
+  if (e.target === confirmModal) closeConfirmModal();
+});
+
+// =====================
+// Booking Submit -> เปิด Confirm Modal
+// =====================
 bookingForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -211,36 +259,52 @@ bookingForm?.addEventListener("submit", async (e) => {
     return alert("กรุณากรอกข้อมูลให้ครบ");
   }
 
+  // ✅ เปิด modal ยืนยัน (เหมือนหน้าแก้ไข)
+  openConfirmModal({
+    zone, tableNo,
+    bookerName, studentName, classLevel, homeroomTeacher, phone
+  });
+});
+
+// =====================
+// ✅ กดบันทึกใน confirm modal -> ส่งเข้า GAS
+// =====================
+btnConfirmSave?.addEventListener("click", async () => {
+  if (!PENDING_BOOKING) return;
+
+  const payload = PENDING_BOOKING;
+
   try {
     setLoading(true);
+    btnConfirmSave.disabled = true;
+    btnConfirmSave.textContent = "⏳ กำลังบันทึก...";
     setStatus("⏳ กำลังบันทึก...", true);
 
     const fd = new FormData();
     fd.append("action", "book");
-    fd.append("zone", zone);
-    fd.append("tableNo", tableNo);
-    fd.append("price", getPrice(zone));
-    fd.append("bookerName", bookerName);
-    fd.append("studentName", studentName);
-    fd.append("classLevel", classLevel);
-    fd.append("homeroomTeacher", homeroomTeacher);
-    fd.append("phone", phone);
+    fd.append("zone", payload.zone);
+    fd.append("tableNo", payload.tableNo);
+    fd.append("price", getPrice(payload.zone));
+    fd.append("bookerName", payload.bookerName);
+    fd.append("studentName", payload.studentName);
+    fd.append("classLevel", payload.classLevel);
+    fd.append("homeroomTeacher", payload.homeroomTeacher);
+    fd.append("phone", payload.phone);
 
     const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
     const text = await res.text();
 
     let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("API ไม่ได้ส่ง JSON: " + text);
-    }
+    try { data = JSON.parse(text); }
+    catch { throw new Error("API ไม่ได้ส่ง JSON: " + text); }
 
     if (!data.ok) {
       setStatus("❌ จองไม่สำเร็จ: " + (data.message || "unknown"), false);
       return;
     }
 
+    // ✅ success
+    closeConfirmModal();
     setStatus("✅ จองสำเร็จแล้ว!", true);
 
     bookingForm.reset();
@@ -255,6 +319,8 @@ bookingForm?.addEventListener("submit", async (e) => {
     setStatus("❌ เกิดข้อผิดพลาด: " + (err.message || err), false);
   } finally {
     setLoading(false);
+    btnConfirmSave.disabled = false;
+    btnConfirmSave.textContent = "💾 บันทึก";
   }
 });
 
