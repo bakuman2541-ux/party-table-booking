@@ -1,0 +1,7 @@
+project/
+├─ index.html
+├─ style.css
+├─ images/
+│  ├─ bg.jpg     ✅ พื้นหลังใหม่
+│  └─ plan.png
+└─ script.js
