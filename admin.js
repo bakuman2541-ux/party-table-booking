@@ -204,22 +204,33 @@ document.addEventListener("DOMContentLoaded", () => {
   searchBox?.addEventListener("input", renderCards);
 
   function matchRow(r, q) {
-    if (!q) return true;
-    const raw = q.toLowerCase().trim();
-    const qDigits = digitsOnly(raw);
-    if (qDigits && digitsOnly(r.phone).includes(qDigits)) return true;
+  if (!q) return true;
 
-    const hay = [
-      r.bookerName,
-      r.studentName,
-      r.classLevel,
-      r.homeroomTeacher,
-      (r.zone + r.tableNo),
-      r.phone
-    ].join(" ").toLowerCase();
+  const raw = q.toLowerCase().trim();
+  const qUpper = q.toUpperCase().trim();
 
-    return hay.includes(raw);
+  // ✅ ถ้าค้นหาเป็นรูปแบบโต๊ะ เช่น A1, B12, J13 -> ให้ MATCH แบบตรงตัวเท่านั้น
+  if (/^[A-J]\d{1,2}$/.test(qUpper)) {
+    const seat = String((r.zone || "") + (r.tableNo || "")).toUpperCase().trim();
+    return seat === qUpper;
   }
+
+  // ✅ ถ้าพิมพ์เป็นเบอร์ -> ค้นหาเฉพาะตัวเลข
+  const qDigits = digitsOnly(raw);
+  if (qDigits && digitsOnly(r.phone).includes(qDigits)) return true;
+
+  // ✅ ค้นหาทั่วไป
+  const hay = [
+    r.bookerName,
+    r.studentName,
+    r.classLevel,
+    r.homeroomTeacher,
+    (r.zone + r.tableNo),
+    r.phone
+  ].join(" ").toLowerCase();
+
+  return hay.includes(raw);
+}
 
   function renderCards() {
     const q = (searchBox?.value || "").trim();
