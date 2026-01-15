@@ -1,8 +1,9 @@
 // =============================
 // Party Table Booking - admin.js
 // ✅ วางทับได้ทั้งไฟล์
-// ✅ FIX: ปุ่มแก้ไข/ลบ/ปลดโต๊ะ Failed to fetch (CORS preflight)
-// ✅ FIX: เวลาไม่ขึ้น (createdAt/timestamp)
+// ✅ FIX: Failed to fetch เมื่อรันบน GitHub Pages
+// ✅ ใช้ POST แบบ x-www-form-urlencoded (ไม่ CORS preflight)
+// ✅ เพิ่ม Toast แจ้งเตือนสวยๆ + error ชัดเจน
 // =============================
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYzPY2VcEjofjF_Kh4tNu0yjRjyGjPB8ykxBWVupLx8pdNB6_CPuGAHCQXo2bFXVkQ/exec";
@@ -10,6 +11,68 @@ const ADMIN_PASSWORD = "bsr1234";
 
 let ALL = [];
 let VIEW = [];
+
+/* =============================
+   ✅ Toast UI (แจ้งเตือนสวย)
+============================= */
+function ensureToast_() {
+  if (document.getElementById("toastWrap")) return;
+
+  const wrap = document.createElement("div");
+  wrap.id = "toastWrap";
+  wrap.style.cssText = `
+    position: fixed; right: 16px; bottom: 16px; z-index: 999999;
+    display: flex; flex-direction: column; gap: 10px;
+    max-width: min(420px, calc(100vw - 24px));
+  `;
+  document.body.appendChild(wrap);
+}
+function toast(msg, type = "info", ms = 2800) {
+  ensureToast_();
+
+  const el = document.createElement("div");
+  el.style.cssText = `
+    padding: 12px 14px;
+    border-radius: 14px;
+    box-shadow: 0 16px 30px rgba(0,0,0,.12);
+    font-weight: 700;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,.06);
+    display:flex; gap:10px; align-items:flex-start;
+  `;
+
+  const icon = document.createElement("div");
+  icon.style.cssText = `font-size:18px; line-height:1.1; margin-top:1px;`;
+
+  const text = document.createElement("div");
+  text.style.cssText = `font-size:14px; font-weight:700; line-height:1.3; white-space:pre-line;`;
+
+  const map = {
+    info: { i: "ℹ️", b: "rgba(0,0,0,.06)" },
+    ok: { i: "✅", b: "rgba(34,197,94,.20)" },
+    warn: { i: "⚠️", b: "rgba(245,158,11,.25)" },
+    err: { i: "❌", b: "rgba(239,68,68,.20)" }
+  };
+  const m = map[type] || map.info;
+  icon.textContent = m.i;
+  el.style.borderColor = m.b;
+
+  text.textContent = msg;
+
+  el.appendChild(icon);
+  el.appendChild(text);
+
+  const wrap = document.getElementById("toastWrap");
+  wrap.appendChild(el);
+
+  setTimeout(() => {
+    el.style.transition = "all .25s ease";
+    el.style.opacity = "0";
+    el.style.transform = "translateY(8px)";
+    setTimeout(() => el.remove(), 260);
+  }, ms);
+}
 
 function esc(s) {
   return String(s ?? "")
@@ -22,8 +85,7 @@ function esc(s) {
 function digitsOnly(s) { return String(s || "").replace(/\D/g, ""); }
 function normalizePhone(p) {
   let s = digitsOnly(String(p || "").trim());
-  if (s.length === 9 && !s.startsWith("0")) s = "0" + s;
-  if (s && !s.startsWith("0")) s = "0" + s;
+  if (s.length === 9) s = "0" + s;
   if (s.length > 10) s = s.slice(0, 10);
   if (s.length >= 4) s = s.slice(0, 3) + "-" + s.slice(3);
   return s;
@@ -34,26 +96,47 @@ function fmtTime(s) {
   return raw.replace("T", " ").replace(/\.\d+Z$/, "").replace(/Z$/, "");
 }
 
-async function apiGet(action) {
-  const res = await fetch(`${WEB_APP_URL}?action=${encodeURIComponent(action)}`);
-  return await res.json();
+/* =============================
+   ✅ API Helper + Error ชัดเจน
+============================= */
+async function safeFetch_(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    const txt = await res.text();
+
+    // พยายาม parse JSON
+    let data = null;
+    try { data = JSON.parse(txt); } catch (_) {}
+
+    if (!res.ok) {
+      const msg = (data && (data.message || data.error)) || txt || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    if (!data) throw new Error("Response is not JSON (ตรวจสอบ WebApp URL)");
+    return data;
+  } catch (err) {
+    // สรุปข้อความให้เข้าใจง่าย
+    const hint =
+      "\n\nวิธีแก้:\n- Apps Script Deploy ต้องเป็น Execute as: Me\n- Who has access: Anyone\n- ใช้ URL WebApp ล่าสุดใน admin.js";
+
+    throw new Error((err.message || "Failed to fetch") + hint);
+  }
 }
 
-/* =====================================================
-   ✅ FIX สำคัญ: POST แบบ x-www-form-urlencoded
-   - กัน CORS preflight ที่ทำให้ Failed to fetch
-===================================================== */
+async function apiGet(action) {
+  return await safeFetch_(`${WEB_APP_URL}?action=${encodeURIComponent(action)}`, { method: "GET" });
+}
+
+// ✅ FIX: POST แบบ x-www-form-urlencoded เพื่อกัน CORS Preflight
 async function apiPost(bodyObj) {
   const form = new URLSearchParams();
   Object.entries(bodyObj || {}).forEach(([k, v]) => form.append(k, String(v ?? "")));
 
-  const res = await fetch(WEB_APP_URL, {
+  return await safeFetch_(WEB_APP_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-    body: form.toString(),
+    body: form.toString()
   });
-
-  return await res.json();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -102,12 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     editModal.classList.remove("hidden");
     editModal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
-    setTimeout(() => {
-      const first = editModal.querySelector("input,button,textarea,select");
-      if (first) first.focus();
-    }, 30);
   }
-
   function closeModal() {
     if (!editModal) return;
     editModal.classList.add("hidden");
@@ -192,12 +270,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await apiGet("adminList");
       if (!data.ok) throw new Error(data.message || "โหลดข้อมูลไม่สำเร็จ");
       ALL = Array.isArray(data.bookings) ? data.bookings : [];
+
       setStatus(`โหลดแล้ว ${ALL.length} รายการ`);
+      toast(`โหลดข้อมูลสำเร็จ (${ALL.length} รายการ)`, "ok");
       renderCards();
     } catch (err) {
       console.error(err);
-      setStatus(err.message || "โหลดข้อมูลไม่สำเร็จ", false);
-      alert("❌ โหลดข้อมูลไม่สำเร็จ\n" + (err.message || ""));
+      setStatus("เชื่อมต่อไม่ได้", false);
+      toast("เชื่อมต่อ WebApp ไม่ได้\n" + err.message, "err", 6500);
     }
   }
 
@@ -207,45 +287,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const act = btn.dataset.act;
 
-    if (act === "del") {
-      const id = btn.dataset.id;
-      if (!confirm("ยืนยันลบรายการนี้?")) return;
-      const res = await apiPost({ action: "adminDelete", id });
-      if (!res.ok) return alert("❌ ลบไม่สำเร็จ: " + (res.message || ""));
-      await loadList();
-    }
+    try {
+      if (act === "del") {
+        const id = btn.dataset.id;
+        if (!confirm("ยืนยันลบรายการนี้?")) return;
 
-    if (act === "unlock") {
-      const zone = btn.dataset.zone;
-      const tableNo = btn.dataset.table;
-      if (!confirm(`ยืนยันปลดโต๊ะ แถว ${zone} โต๊ะ ${tableNo}?`)) return;
-      const res = await apiPost({ action: "adminUnlock", zone, tableNo });
-      if (!res.ok) return alert("❌ ปลดโต๊ะไม่สำเร็จ: " + (res.message || ""));
-      await loadList();
-    }
+        toast("กำลังลบ...", "info");
+        const res = await apiPost({ action: "adminDelete", id });
+        if (!res.ok) throw new Error(res.message || "ลบไม่สำเร็จ");
 
-    if (act === "edit") {
-      const id = btn.dataset.id;
-      const row = ALL.find(x => String(x.id) === String(id));
-      if (!row) return alert("ไม่พบข้อมูลรายการนี้");
+        toast("ลบสำเร็จ", "ok");
+        await loadList();
+      }
 
-      modalStatus.textContent = "";
-      editId.value = row.id ?? "";
-      editZone.value = row.zone ?? "";
-      editTableNo.value = row.tableNo ?? "";
-      editBookerName.value = row.bookerName ?? "";
-      editStudentName.value = row.studentName ?? "";
-      editClassLevel.value = row.classLevel ?? "";
-      editTeacher.value = row.homeroomTeacher ?? "";
-      editPhone.value = row.phone ?? "";
+      if (act === "unlock") {
+        const zone = btn.dataset.zone;
+        const tableNo = btn.dataset.table;
+        if (!confirm(`ยืนยันปลดโต๊ะ แถว ${zone} โต๊ะ ${tableNo}?`)) return;
 
-      openModal();
+        toast("กำลังปลดโต๊ะ...", "info");
+        const res = await apiPost({ action: "adminUnlock", zone, tableNo });
+        if (!res.ok) throw new Error(res.message || "ปลดโต๊ะไม่สำเร็จ");
+
+        toast("ปลดโต๊ะสำเร็จ", "ok");
+        await loadList();
+      }
+
+      if (act === "edit") {
+        const id = btn.dataset.id;
+        const row = ALL.find(x => String(x.id) === String(id));
+        if (!row) return toast("ไม่พบข้อมูลรายการนี้", "warn");
+
+        modalStatus.textContent = "";
+        editId.value = row.id ?? "";
+        editZone.value = row.zone ?? "";
+        editTableNo.value = row.tableNo ?? "";
+        editBookerName.value = row.bookerName ?? "";
+        editStudentName.value = row.studentName ?? "";
+        editClassLevel.value = row.classLevel ?? "";
+        editTeacher.value = row.homeroomTeacher ?? "";
+        editPhone.value = row.phone ?? "";
+
+        openModal();
+      }
+    } catch (err) {
+      console.error(err);
+      toast("ทำรายการไม่สำเร็จ\n" + (err.message || ""), "err", 6500);
     }
   });
 
   btnSaveEdit?.addEventListener("click", async () => {
     try {
       modalStatus.textContent = "⏳ กำลังบันทึก...";
+      toast("กำลังบันทึก...", "info");
+
       const payload = {
         action: "adminUpdate",
         id: editId.value,
@@ -262,11 +357,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error(res.message || "บันทึกไม่สำเร็จ");
 
       modalStatus.textContent = "✅ บันทึกสำเร็จ";
+      toast("บันทึกสำเร็จ", "ok");
+
       closeModal();
       await loadList();
     } catch (err) {
       console.error(err);
       modalStatus.textContent = "❌ " + (err.message || "บันทึกไม่สำเร็จ");
+      toast("บันทึกไม่สำเร็จ\n" + (err.message || ""), "err", 6500);
     }
   });
 
@@ -274,9 +372,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const p = adminPass.value.trim();
     if (p !== ADMIN_PASSWORD) {
       setStatus("รหัสผ่านไม่ถูกต้อง", false);
+      toast("รหัสผ่านไม่ถูกต้อง", "warn");
       return;
     }
 
+    toast("เข้าสู่ระบบสำเร็จ", "ok");
     loginBox.classList.add("hidden");
     adminPanel.classList.remove("hidden");
 
